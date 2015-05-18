@@ -1,0 +1,79 @@
+@import "settings/mixins";
+
+#welcomeWrapper {
+	width:100%;
+	height:100%;
+}
+.customMarker {
+	position:absolute;
+	background-color:$red;
+	width:60px;
+	height:60px;
+	padding:10px 5px;
+	border-radius:100%;
+	text-align:center;
+	color:$white;
+	font-size:10px;
+
+	&:after {
+		position:absolute;
+		height: 0;
+		line-height: 0;
+		font-size: 1px;
+		border-style:solid;
+		border-color:$red transparent transparent transparent;
+		border-width:8px 4px 0;
+		bottom: -6px;
+		left:50%;
+		margin-left:-4px;
+		display: block;
+		content:"";
+	}
+}
+.customMarkerTitle {
+	line-height:12px;
+}
+.customMarkerCount {
+	line-height:16px;
+	font-size:14px;
+}
+#searchPannel {
+	position:absolute;
+	height:64px;
+	background-color:rgba(255,255,255,.8);
+	bottom:0;
+	width:100%;
+	padding:8px 0;
+}
+#searchPannelInner {
+	display:table;
+}
+#locate,#searchInput,#search {
+	display:table-cell;
+}
+#locate,#search {
+	width:48px;
+	height:48px;
+	text-align:center;
+	.icon {
+		display: block;
+		width: 100%;
+		height: 100%;
+		line-height:48px;
+		font-size: 24px;
+		color:$red;
+	}
+}
+#searchInput {
+	line-height:32px;
+	height:32px;
+	font-size:16px;
+	color:#a0a0a0;
+	text-align:center;
+	background-color:$white;
+	border-radius:5px;
+	border:1px solid $red;
+}
+#areaListWrapper {
+	background-color:$white;
+}
