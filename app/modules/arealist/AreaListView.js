@@ -6,10 +6,10 @@
                 return Mustache.render(template, serialized_model);
             },
             ui: {
-
+                'areaListWrapper': '#areaListWrapper'
             },
             events: {
-
+                'tap .back': 'onBack'
             },
             initialize: function(options) {
                 this.model = new AreaList(options.modelData);
@@ -21,11 +21,16 @@
             childView: AreaItemView,
             childViewContainer: '#areaList',
             onShow: function() {
-
+                this.ui.areaListWrapper.height($('window').height() - 56);
+                this.scroller = new IScroll(this.ui.areaListWrapper[0]);
+            },
+            onBack: function() {
+                this.mainView.foldSecondaryRegion();
             },
             onDestroy: function() {
+                if(this.scroller) this.scroller.destroy();
                 this.stopListening();
             },
-            id: 'AreaListWrapper'
+            id: 'areasWrapper'
         });
     });

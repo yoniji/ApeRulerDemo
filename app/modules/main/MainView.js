@@ -55,7 +55,8 @@ define(['app', 'backbone', 'marionette', 'mustache', 'jquery', 'text!modules/mai
                 mc.remove('doubletap');
                 mc.remove('press');
                 mc.remove('rotate');
-                mc.remove('pinch');
+                mc.get('pinch').set({enable:true});
+                mc.get('pan').set({enable:true});
             },
             onTapLink: function(event) {
                 event.preventDefault();

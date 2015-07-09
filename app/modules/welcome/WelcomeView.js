@@ -1,9 +1,10 @@
-﻿define(['app', 'backbone', 'marionette', 'mustache', 'jquery', 'text!modules/welcome/welcome.html','modules/arealist/AreaListView', 'iscroll'],
-    function(App, Backbone, Marionette, Mustache, $, template, AreaListView) {
+﻿define(['app', 'underscore', 'backbone', 'marionette', 'mustache', 'jquery', 'text!modules/welcome/welcome.html', 'modules/arealist/AreaListView', 'modules/floorplan/FloorplanListView'],
+    function(App, _, Backbone, Marionette, Mustache, $, template, AreaListView, FloorplanListView) {
         //自定义覆盖物
-        function ComplexCustomOverlay(point, text) {
+        function ComplexCustomOverlay(point, text, result) {
             this._point = point;
             this._text = text;
+            this._data = result;
         }
         ComplexCustomOverlay.prototype = new BMap.Overlay();
 
@@ -12,10 +13,16 @@
 
             var $element = $('<div class="customMarker"></div>');
             $element.append('<div class="customMarkerTitle">' + this._text + '</div>');
-            $element.append('<div class="customMarkerCount">' + Math.round(Math.random() * 10 + 1) + '</div>');
-            var marker = this._div = $element[0];
+            $element.append('<div class="customMarkerCount">' + this._data.floorplanCount + '</div>');
+            var marker  = $element[0];
+            this._div = marker;
             marker.style.zIndex = BMap.Overlay.getZIndex(this._point.lat);
             map.getPanes().labelPane.appendChild(marker);
+
+            var self = this;
+            $element.on('touchstart', function(ev){
+                new FloorplanListView({modelData:self._data});
+            });
             return marker;
         };
         ComplexCustomOverlay.prototype.draw = function() {
@@ -29,9 +36,9 @@
                 return Mustache.render(template, serialized_model);
             },
             ui: {
-                'map':'#map',
-                'input':'#searchInput',
-                'locate':'#locate'
+                'map': '#map',
+                'input': '#searchInput',
+                'locate': '#locate'
             },
             events: {
                 'tap @ui.locate': 'onLocate',
@@ -42,14 +49,14 @@
                 this.mainView.updatePrimaryRegion(this);
 
             },
-            markers:[],
-            areas:[],
+            markers: [],
+            areas: [],
             onShow: function() {
                 var width = this.$el.parent().width();
                 var height = this.$el.parent().height();
                 this.$el.width(width).height(height);
                 this.ui.map.width(width).height(height);
-                this.ui.input.width(width-96);
+                this.ui.input.width(width - 96);
 
                 this.initMap();
                 this.getCurrentLocation();
@@ -60,7 +67,7 @@
                 this.map.centerAndZoom(initPoint, 16);
 
                 var self = this;
-                this.map.addEventListener('dragend', function(){
+                this.map.addEventListener('dragend', function() {
                     self.onMapDragEnd();
                 });
 
@@ -80,7 +87,7 @@
             },
             onLocate: function() {
                 //move to current point and search again
-                if(this.map && this.currentPoint) {
+                if (this.map && this.currentPoint) {
 
                     this.searchNearby(this.currentPoint);
                     this.map.panTo(this.currentPoint);
@@ -102,7 +109,7 @@
                     }
                 }, {
                     enableHighAccuracy: true
-                })
+                });
             },
             drawCurrentPosition: function(point) {
                 //画出当前位置
@@ -123,8 +130,8 @@
                 this.map.addOverlay(dot);
             },
             searchNearby: function(point) {
-                if (this.markers && this.markers.length>0) this.clearMarkers();
-                if (this.areas && this.areas.length>0) this.clearAreas();
+                if (this.markers && this.markers.length > 0) this.clearMarkers();
+                if (this.areas && this.areas.length > 0) this.clearAreas();
                 var self = this;
                 //搜索附近的小区
                 var options = {
@@ -133,7 +140,9 @@
                         if (local.getStatus() == BMAP_STATUS_SUCCESS) {
                             for (var i = 0; i < results.getCurrentNumPois(); i++) {
                                 var result = results.getPoi(i);
-                                var myCompOverlay = new ComplexCustomOverlay(results.getPoi(i).point, result.title);
+                                result.distance = self.map.getDistance(point, result.point);
+                                result.floorplanCount = Math.round(Math.random() * 10 + 1);
+                                var myCompOverlay = new ComplexCustomOverlay(result.point, result.title, result);
                                 self.markers.push(myCompOverlay);
                                 self.areas.push(result);
                                 self.map.addOverlay(myCompOverlay);
@@ -147,7 +156,9 @@
             onTapSearch: function() {
                 var areaListView = new AreaListView({
                     modelData: {},
-                    collectionData: this.areas
+                    collectionData: _.sortBy(this.areas, function(area) {
+                        return area.distance;
+                    })
                 });
             },
             onDestroy: function() {
